@@ -41,12 +41,12 @@ class DBFunctions {
                 created_on: thread.created_on,
                 bumped_on: thread.bumped_on,
                 replies: thread.replies.sort((a, b) => a.created_on - b.created_on).slice(0, 3).map(reply => {
-                    let rep = {
+                    let replyInfo = {
                         _id: reply._id,
                         text: reply.text,
                         created_on: reply.created_on,
                     }
-                    return rep
+                    return replyInfo
                 }),
             }
             return threadToView

@@ -96,12 +96,12 @@ class DBFunctions {
             created_on: threads.created_on,
             bumped_on: threads.bumped_on,
             replies: threads.replies.sort((a, b) => a.created_on - b.created_on).map(reply => {
-                let rep = {
+                let replyInfo = {
                     _id: reply._id,
                     text: reply.text,
                     created_on: reply.created_on,
                 }
-                return rep
+                return replyInfo
             }),
         }
         return displayThread

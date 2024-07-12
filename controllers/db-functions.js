@@ -1,6 +1,7 @@
 const MessageBoard = require("../controllers/models").MessageBoard;
 const BCryptFunctions = require('../controllers/encrypt');
 const bcryptFunc = new BCryptFunctions(); 
+
 class DBFunctions {
 
     async createThread(board, text, delete_password) {
@@ -39,13 +40,13 @@ class DBFunctions {
                 text: thread.text,
                 created_on: thread.created_on,
                 bumped_on: thread.bumped_on,
-                replies: thread.replies.sort((a, b) => a.created_on - b.created_on).slice(0, 3).map(reply_info => {
-                    let reply_info = {
+                replies: thread.replies.sort((a, b) => a.created_on - b.created_on).slice(0, 3).map(reply => {
+                    let rep = {
                         _id: reply._id,
                         text: reply.text,
                         created_on: reply.created_on,
                     }
-                    return reply_info
+                    return rep
                 }),
             }
             return threadToView
@@ -82,6 +83,64 @@ class DBFunctions {
                 return updatedThread
             }
             return thread
+        }
+        return false
+    }
+
+    async getFullThread(_id, board) {
+        const threads = await MessageBoard.findById({_id: _id});
+        let displayThread = {
+            _id: threads.id,
+            board: threads.board,
+            text: threads.text,
+            created_on: threads.created_on,
+            bumped_on: threads.bumped_on,
+            replies: threads.replies.sort((a, b) => a.created_on - b.created_on).map(reply => {
+                let rep = {
+                    _id: reply._id,
+                    text: reply.text,
+                    created_on: reply.created_on,
+                }
+                return rep
+            }),
+        }
+        return displayThread
+    }
+
+    async deleteReply(thread_id, reply_id, delete_password) {
+        let thread = await MessageBoard.findById({_id: thread_id});
+        let changed = false;
+        if (bcryptFunc.comparePWString(delete_password, thread.delete_password)){
+            thread.replies.forEach((reply) => {
+                if(reply._id.toString() == reply_id) {
+                    reply.text = '[deleted]';
+                    changed = true;
+                }
+            });
+            if (changed) {
+                let newThread = await thread.save();
+            }
+            return 'success'
+        }
+        return 'incorrect password'
+    }
+
+    async reportReply(thread_id, reply_id) {
+        let thread = await MessageBoard.findById({_id: thread_id});
+        let changed = false;
+        if (thread) {
+            thread.replies.forEach((reply) => {
+                if (reply._id == reply_id) {
+                    reply.reported = true;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                let newThread = await thread.save();
+                if (newThread) {
+                    return 'reported'
+                }
+            }
         }
         return false
     }

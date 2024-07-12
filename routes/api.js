@@ -22,7 +22,6 @@ module.exports = function (app) {
       res.json(newThread);
     })
     .put(async (req, res) => {
-      console.log('threads - put');
       const {board} = req.params;
       let _id;
       if (req.body.thread_id) {
@@ -36,24 +35,27 @@ module.exports = function (app) {
     
   app.route('/api/replies/:board')
     .get(async (req, res) => {
-      console.log(req.body);
-      console.log('replies - get');
-      res.json({return: 'return'});
+      const { board } = req.params;
+      const { thread_id } = req.query;
+      let fullThread = await dbFunc.getFullThread(thread_id, board);
+      res.json(fullThread);
     })
     .delete(async (req, res) => {
-      console.log('replies - delete');
-      res.json({return: 'return'});
+      const { board } = req.params;
+      const { thread_id, reply_id, delete_password } = req.body;
+      let response = await dbFunc.deleteReply(thread_id, reply_id, delete_password);
+      res.send(response);
     })
     .post(async (req, res) => {
-      console.log('replies - post');
       const { board } = req.params;
       const { thread_id, text, delete_password } = req.body;
       let updatedThread = await dbFunc.createReply(board, thread_id, text, delete_password);
       res.json(updatedThread);
     })
     .put(async (req, res) => {
-      console.log('replies - put');
-      res.json({return: 'return'});
+      const {thread_id, reply_id} = req.body;
+      let result = await dbFunc.reportReply(thread_id, reply_id);
+      res.send(result);
     });
 
 };
